@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cafelito — Generator Etykiet</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f5f0eb;color:#1a1a1a;min-height:100vh;-webkit-tap-highlight-color:transparent}
+.hdr{background:#1a1a1a;color:#fff;padding:16px 20px;text-align:center}
+.hdr h1{font-size:1rem;letter-spacing:4px;text-transform:uppercase;font-weight:600}
+.hdr p{font-size:.75rem;color:#c8a97e;margin-top:2px;letter-spacing:1px}
+.wrap{max-width:880px;margin:0 auto;padding:12px}
+.status{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:9px;margin-bottom:12px;font-size:.78rem;background:#e8f5e9}
+.status button{background:none;border:1px solid #aaa;border-radius:6px;padding:3px 10px;font-size:.7rem;cursor:pointer}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e0d8cf}
+.lbl{display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8a8279;margin-bottom:5px}
+select,input[type="date"],input[type="number"],input[type="password"]{width:100%;padding:9px 10px;border:1.5px solid #e0d8cf;border-radius:8px;font-size:.88rem;background:#faf8f5;box-sizing:border-box;font-family:inherit;color:#1a1a1a}
+select:focus,input:focus{outline:none;border-color:#8b6f47}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:500px){.row2{grid-template-columns:1fr}}
+.type-btns{display:flex;gap:6px;margin-bottom:12px}
+.type-btn{flex:1;padding:14px 8px;border:2px solid #e0d8cf;border-radius:10px;background:#faf8f5;cursor:pointer;text-align:center;transition:all .15s}
+.type-btn.active{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
+.type-btn .icon{font-size:1.4rem;margin-bottom:4px}
+.type-btn .label{font-size:.78rem;font-weight:600}
+.sz-btns{display:flex;gap:6px;margin-bottom:12px}
+.sz-btn{flex:1;padding:12px 8px;border:2px solid #e0d8cf;border-radius:10px;background:#faf8f5;cursor:pointer;text-align:center;font-family:inherit;font-size:.9rem;font-weight:600;transition:all .15s}
+.sz-btn.active{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
+.actions{display:flex;gap:8px;margin-top:14px}
+.btn{flex:1;padding:12px 14px;border:none;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;color:#fff;text-align:center}
+.btn-dark{background:#1a1a1a}.btn-gold{background:#c8a97e}.btn:disabled{background:#ddd;cursor:not-allowed}
+.preview-box{background:#e8e2da;border-radius:9px;padding:12px;display:flex;justify-content:center;overflow:auto;-webkit-overflow-scrolling:touch}
+.preview-box canvas{max-width:100%;height:auto;border-radius:3px;box-shadow:0 3px 16px rgba(0,0,0,.1)}
+.badge{font-size:.65rem;padding:2px 8px;border-radius:16px;font-weight:600}
+.badge.ok{background:#e8f5e9;color:#2e7d32}.badge.no{background:#fce4ec;color:#c62828}
+.toggle-btn{background:none;border:none;font-size:.68rem;color:#8a8279;cursor:pointer;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:0;font-family:inherit}
+.pos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.pos-grid label{font-size:.6rem;color:#aaa;display:block;margin-bottom:2px}
+.pos-grid input{text-align:center;padding:5px 7px;font-size:.8rem}
+.hidden{display:none}
+.step-label{font-size:.72rem;font-weight:700;color:#8a8279;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.step-num{background:#1a1a1a;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700}
+.divider{border:none;border-top:1px solid #f0ebe5;margin:14px 0}
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:4px;margin-bottom:12px}
+.tpl-item{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:5px;font-size:.68rem;border:1px solid #eee;background:#fafafa}
+.tpl-item.loaded{background:#f1f8e9;border-color:#c8e6c9}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}.dot.on{background:#4caf50}.dot.off{background:#ddd}
+.upload-zone{border:2px dashed #e0d8cf;border-radius:9px;padding:20px 14px;text-align:center;cursor:pointer}
+.info{background:#fff8e1;border:1px solid #ffe082;border-radius:7px;padding:10px;margin-bottom:12px;font-size:.76rem;color:#5d4037;line-height:1.5}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f0eb;padding:20px}
+.login-box{background:#fff;border-radius:16px;padding:36px 28px;max-width:360px;width:100%;text-align:center;border:1px solid #e0d8cf;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.login-box h2{font-size:1rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+.login-box .sub{font-size:.78rem;color:#c8a97e;margin-bottom:24px}
+.login-box input{margin-bottom:12px}
+.login-box .err{color:#c62828;font-size:.78rem;margin-bottom:10px;display:none}
+.login-box .btn{width:100%;margin-top:4px}
+.role-badge{display:inline-block;font-size:.65rem;padding:2px 10px;border-radius:12px;background:#e8f5e9;color:#2e7d32;font-weight:600;margin-left:8px}
+.loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f0eb;padding:20px}
+.loading-box{text-align:center;color:#8a8279}
+.loading-box .spinner{width:40px;height:40px;border:3px solid #e0d8cf;border-top-color:#1a1a1a;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen" class="loading-screen">
+<div class="loading-box">
+<div class="spinner"></div>
+<div style="font-size:.85rem;font-weight:600">Ładowanie etykiet...</div>
+<div style="font-size:.7rem;margin-top:4px">To może potrwać kilka sekund</div>
+</div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen hidden">
+<div class="login-box">
+<div style="font-size:2.2rem;margin-bottom:12px">☕</div>
+<h2>Cafelito Coffee Co.</h2>
+<div class="sub">Generator etykiet</div>
+<input type="password" id="loginPw" placeholder="Wpisz hasło..." onkeydown="if(event.key==='Enter')login()">
+<div class="err" id="loginErr">Nieprawidłowe hasło</div>
+<button class="btn btn-dark" onclick="login()">Zaloguj się</button>
+</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+<div class="hdr"><h1>☕ Cafelito Coffee Co.</h1><p>Generator etykiet</p></div>
+<div class="wrap">
+<div class="status" id="sBar">
+<span id="sTxt"></span>
+<span>
+<span class="role-badge" id="roleBadge"></span>
+<button onclick="logout()" style="background:none;border:1px solid #aaa;border-radius:6px;padding:3px 10px;font-size:.7rem;cursor:pointer;margin-left:6px">Wyloguj</button>
+</span>
+</div>
+
+<div class="card hidden" id="admin">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<span class="lbl" style="margin:0">🔒 Panel zarządu — dodaj nowe szablony</span>
+</div>
+<div class="info">Wgraj nowe etykiety PNG. Nazwa pliku = klucz, np. <strong>wielblady-250g.png</strong></div>
+<div class="tpl-grid" id="tGrid"></div>
+<div class="upload-zone" id="uZone" onclick="document.getElementById('fIn').click()">
+<input type="file" id="fIn" accept="image/png,image/jpeg" multiple style="display:none" onchange="upFiles(this.files)">
+<p style="font-size:1.3rem;margin-bottom:4px">📁</p>
+<p id="uTxt">Przeciągnij pliki PNG lub <strong>kliknij</strong></p>
+</div>
+</div>
+
+<div class="card">
+<div class="step-label"><span class="step-num">1</span> Typ etykiety</div>
+<div class="type-btns">
+  <div class="type-btn" onclick="setType('paczka')" id="typeP"><div class="icon">📦</div><div class="label">Paczka</div></div>
+  <div class="type-btn" onclick="setType('drip')" id="typeD"><div class="icon">☕</div><div class="label">Drip Bag</div></div>
+</div>
+<div id="sizeStep" class="hidden">
+<div class="step-label"><span class="step-num">2</span> Rozmiar</div>
+<div class="sz-btns" id="szBtns">
+  <button class="sz-btn" onclick="setSize('250g')">250g</button>
+  <button class="sz-btn" onclick="setSize('1kg')">1kg</button>
+</div>
+</div>
+<div id="prodStep" class="hidden">
+<div class="step-label"><span class="step-num" id="prodStepNum">3</span> Kawa</div>
+<select id="pSel" onchange="chgProd()"><option value="">— Wybierz kawę —</option></select>
+</div>
+<hr class="divider">
+<div class="row2">
+  <div><label class="lbl">Data palenia</label><input type="date" id="dIn" onchange="render()"></div>
+  <div style="display:flex;align-items:flex-end"><button class="btn btn-dark" onclick="render()" style="width:100%">Generuj</button></div>
+</div>
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0ebe5">
+<button class="toggle-btn" onclick="var p=document.getElementById('posP');p.classList.toggle('hidden');document.getElementById('posA').textContent=p.classList.contains('hidden')?'\u25BC':'\u25B2'">⚙ Pozycja daty <span id="posA">▼</span></button>
+<div class="pos-grid hidden" id="posP">
+<div><label>X (px)</label><input type="number" id="pX" value="1043" onchange="render()"></div>
+<div><label>Y (px)</label><input type="number" id="pY" value="91" onchange="render()"></div>
+<div><label>Rozmiar</label><input type="number" id="pF" value="13" min="8" max="40" onchange="render()"></div>
+</div></div>
+<div class="actions">
+  <button class="btn btn-gold" id="dlB" disabled onclick="dl()">⬇ Pobierz PNG</button>
+</div>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="lbl" style="margin:0">Podgląd</span><span class="badge no" id="bdg"></span></div>
+<div class="preview-box"><canvas id="cvs" width="1181" height="472"></canvas></div>
+</div>
+<div style="text-align:center;font-size:.6rem;color:#bbb;margin-top:12px;padding-bottom:16px">Cafelito Coffee Co. — Generator Etykiet v5.1</div>
+</div>
+</div>
+
+<!-- Load labels data separately -->
+<script src="labels.js"></script>
+
+<script>
+var BLENDS=[
+  {id:"wielblady",n:"Wielbłądy",s:["250g","1kg","12g"]},
+  {id:"lwy",n:"Lwy",s:["250g","1kg","12g"]},
+  {id:"slonie",n:"Słonie",s:["250g","1kg","12g"]},
+  {id:"ptaki",n:"Ptaki",s:["250g","1kg","12g"]},
+  {id:"nowy-blend",n:"Nowy Blend",s:["250g","1kg","12g"]},
+  {id:"malpa",n:"Małpa",s:["250g","1kg","12g"]},
+  {id:"orly-espresso",n:"Orły Espresso",s:["250g","1kg","12g"]}
+];
+var SINGLES=[
+  {id:"etiopia-said-kedir",n:"Etiopia Said Kedir",s:["250g","12g"]},
+  {id:"peru-decaf",n:"Peru Decaf",s:["250g","12g"]},
+  {id:"peru-negrisa",n:"Peru Negrisa",s:["250g","12g"]},
+  {id:"kenya-kiambu",n:"Kenya Kiambu",s:["250g","12g"]},
+  {id:"brazylia-monte-belo",n:"Brazylia Monte Belo",s:["250g","12g"]},
+  {id:"meksyk-bellavista",n:"Meksyk Bellavista",s:["250g","12g"]},
+  {id:"peru-las-mishas",n:"Peru Las Mishas Jaen",s:["250g","12g"]},
+  {id:"rwanda-gicumbi",n:"Rwanda Gicumbi",s:["250g","12g"]},
+  {id:"wietnamska-ca-phe",n:"Wietnamska Cà Phê",s:["12g"]}
+];
+var ALL=BLENDS.concat(SINGLES);
+var T={};
+var cType="",cSize="",cProd="";
+var userRole="";
+var PW_PRACOWNIK="BeataiPiotr";
+var PW_ZARZAD="CoPhiUriWollner2026";
+
+// Wait for labels to load, then show login
+function initApp(){
+  if(typeof LABELS !== "undefined"){
+    T=Object.assign({},LABELS);
+    document.getElementById("loadingScreen").classList.add("hidden");
+    document.getElementById("loginScreen").classList.remove("hidden");
+  } else {
+    setTimeout(initApp, 200);
+  }
+}
+initApp();
+
+function login(){
+  var pw=document.getElementById("loginPw").value;
+  if(pw===PW_ZARZAD){
+    userRole="zarzad";
+    startApp();
+  } else if(pw===PW_PRACOWNIK){
+    userRole="pracownik";
+    startApp();
+  } else {
+    document.getElementById("loginErr").style.display="block";
+    document.getElementById("loginPw").value="";
+  }
+}
+
+function startApp(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("mainApp").classList.remove("hidden");
+  document.getElementById("roleBadge").textContent=(userRole==="zarzad")?"Zarząd":"Pracownik";
+  if(userRole==="zarzad"){document.getElementById("admin").classList.remove("hidden")}
+  document.getElementById("dIn").value=new Date().toISOString().split("T")[0];
+  updStatus();
+  buildGrid();
+  render();
+  var uz=document.getElementById("uZone");
+  if(uz){
+    uz.addEventListener("dragover",function(e){e.preventDefault()});
+    uz.addEventListener("drop",function(e){e.preventDefault();if(e.dataTransfer.files.length>0)upFiles(e.dataTransfer.files)});
+  }
+}
+
+function logout(){
+  userRole="";
+  document.getElementById("mainApp").classList.add("hidden");
+  document.getElementById("admin").classList.add("hidden");
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("loginPw").value="";
+  document.getElementById("loginErr").style.display="none";
+}
+
+function setType(t){
+  cType=t;cProd="";cSize="";
+  document.getElementById("typeP").className="type-btn"+(t==="paczka"?" active":"");
+  document.getElementById("typeD").className="type-btn"+(t==="drip"?" active":"");
+  if(t==="paczka"){
+    document.getElementById("sizeStep").classList.remove("hidden");
+    document.getElementById("prodStep").classList.add("hidden");
+    document.getElementById("prodStepNum").textContent="3";
+    var btns=document.getElementById("szBtns").children;
+    for(var i=0;i<btns.length;i++) btns[i].className="sz-btn";
+  } else {
+    cSize="12g";
+    document.getElementById("sizeStep").classList.add("hidden");
+    document.getElementById("prodStepNum").textContent="2";
+    document.getElementById("prodStep").classList.remove("hidden");
+    buildProdSel();
+  }
+  render();
+}
+
+function setSize(s){
+  cSize=s;cProd="";
+  var btns=document.getElementById("szBtns").children;
+  for(var i=0;i<btns.length;i++) btns[i].className="sz-btn"+(btns[i].textContent===s?" active":"");
+  document.getElementById("prodStep").classList.remove("hidden");
+  buildProdSel();
+  render();
+}
+
+function buildProdSel(){
+  var sel=document.getElementById("pSel");
+  sel.innerHTML='<option value="">— Wybierz kawę —</option>';
+  var bo=[],so=[];
+  BLENDS.forEach(function(p){if(p.s.indexOf(cSize)>=0) bo.push(p)});
+  SINGLES.forEach(function(p){if(p.s.indexOf(cSize)>=0) so.push(p)});
+  if(bo.length){
+    var g=document.createElement("optgroup");g.label="☕ Blendy";
+    bo.forEach(function(p){var o=document.createElement("option");o.value=p.id;o.textContent=p.n;g.appendChild(o)});
+    sel.appendChild(g);
+  }
+  if(so.length){
+    var g2=document.createElement("optgroup");g2.label="🌍 Single Origin";
+    so.forEach(function(p){var o=document.createElement("option");o.value=p.id;o.textContent=p.n;g2.appendChild(o)});
+    sel.appendChild(g2);
+  }
+}
+
+function chgProd(){
+  cProd=document.getElementById("pSel").value;
+  document.getElementById("pY").value=(cProd==="wietnamska-ca-phe")?68:91;
+  render();
+}
+
+function updStatus(){
+  var tc=Object.keys(T).length;
+  document.getElementById("sTxt").textContent="✅ "+tc+" etykiet gotowych";
+}
+
+function buildGrid(){
+  var g=document.getElementById("tGrid");
+  if(!g) return;
+  g.innerHTML="";
+  ALL.forEach(function(p){
+    p.s.forEach(function(s){
+      var k=p.id+"-"+s,ok=!!T[k];
+      var d=document.createElement("div");
+      d.className="tpl-item"+(ok?" loaded":"");
+      d.innerHTML='<span class="dot '+(ok?"on":"off")+'"></span><span style="font-weight:500;color:'+(ok?"#333":"#bbb")+'">'+p.n+" "+s+"</span>";
+      g.appendChild(d);
+    });
+  });
+}
+
+function upFiles(fl){
+  var ut=document.getElementById("uTxt"),ld=0,tot=fl.length;
+  ut.textContent="Wgrywam... 0/"+tot;
+  Array.from(fl).forEach(function(f){
+    var nm=f.name.replace(/\.(png|jpg|jpeg)$/i,"").toLowerCase().trim();
+    var r=new FileReader();
+    r.onload=function(e){
+      T[nm]=e.target.result;
+      ld++;
+      ut.textContent="Wgrywam... "+ld+"/"+tot;
+      if(ld===tot) setTimeout(function(){
+        ut.innerHTML="Gotowe! Wgrano "+tot+" plików";
+        buildGrid();updStatus();render();
+      },200);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function fD(s){
+  if(!s) return "";
+  var d=new Date(s+"T00:00:00");
+  return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
+}
+
+function render(){
+  var c=document.getElementById("cvs"),x=c.getContext("2d");
+  var k=cProd+"-"+cSize;
+  var bg=document.getElementById("bdg"),dlb=document.getElementById("dlB");
+  var dt=document.getElementById("dIn").value;
+  var px=parseInt(document.getElementById("pX").value)||1043;
+  var py=parseInt(document.getElementById("pY").value)||91;
+  var pf=parseInt(document.getElementById("pF").value)||13;
+  if(!cProd||!cSize||!T[k]){
+    c.width=1181;c.height=472;
+    x.fillStyle="#f0ebe5";x.fillRect(0,0,1181,472);
+    x.fillStyle="#999";x.font="17px sans-serif";x.textAlign="center";x.textBaseline="middle";
+    if(!cType) x.fillText("↑ Wybierz typ etykiety",590,236);
+    else if(!cSize) x.fillText("↑ Wybierz rozmiar",590,236);
+    else if(!cProd) x.fillText("↑ Wybierz kawę z listy",590,236);
+    else{x.fillText("Brak szablonu: "+k+".png",590,220);x.fillStyle="#c8a97e";x.font="14px sans-serif";x.fillText("Poproś zarząd o wgranie",590,250)}
+    bg.textContent=cProd?"brak":"";bg.className="badge no";dlb.disabled=true;
+    return;
+  }
+  var img=new Image();
+  img.onload=function(){
+    c.width=img.naturalWidth;c.height=img.naturalHeight;
+    x.drawImage(img,0,0);
+    if(dt){
+      x.font="bold "+pf+"px Arial,sans-serif";
+      x.textAlign="center";x.textBaseline="middle";
+      x.fillStyle="#000";
+      x.fillText("DATA PALENIA: "+fD(dt),px,py);
+    }
+    bg.textContent=k;bg.className="badge ok";dlb.disabled=false;
+  };
+  img.src=T[k];
+}
+
+function dl(){
+  var c=document.getElementById("cvs"),k=cProd+"-"+cSize,dt=document.getElementById("dIn").value;
+  if(!T[k]) return;
+  c.toBlob(function(b){
+    var u=URL.createObjectURL(b),a=document.createElement("a");
+    a.download=k+"-"+dt+".png";a.href=u;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(u)},5000);
+  },"image/png");
+}
+</script>
+</body>
+</html>
